@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Northline — Sony WH-1000XM5 (CSE 463 redesign prototype)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16202a; --ink-2:#48566a; --ink-3:#6b7889;
+    --paper:#ffffff; --surface:#f5f7f9; --surface-2:#eef1f5; --line:#e0e5eb;
+    --accent:#0e7c86; --accent-ink:#0a5a62; --accent-wash:#e4f2f3;
+    --good:#1e7a3c; --good-wash:#e5f3ea;
+    --warn:#b5700f; --warn-wash:#fbeeda; --warn-line:#eccb9a;
+    --radius:12px; --radius-sm:8px;
+    --shadow:0 1px 2px rgba(22,32,42,.06), 0 8px 24px rgba(22,32,42,.06);
+    --maxw:1080px;
+    font-family:'Figtree', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--surface);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .num{font-variant-numeric:tabular-nums}
+  a{color:var(--accent-ink)}
+  button{font-family:inherit;cursor:pointer}
+  :focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* Header */
+  header.app{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:saturate(1.2) blur(6px);border-bottom:1px solid var(--line)}
+  .hdr{max-width:var(--maxw);margin:0 auto;display:flex;align-items:center;gap:16px;padding:12px 20px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:-.02em;font-size:19px}
+  .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--accent);display:inline-block}
+  .brand small{font-weight:500;color:var(--ink-3);font-size:12px;letter-spacing:0}
+  .state-pill{margin-left:6px;font-size:12px;font-weight:600;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line);padding:4px 10px;border-radius:999px}
+  .hdr .spacer{flex:1}
+  .hdr .cartbtn{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 12px;border-radius:999px;font-weight:600;font-size:14px}
+  .hdr .cartbtn .count{background:var(--accent);color:#fff;border-radius:999px;min-width:19px;height:19px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;padding:0 5px}
+  .hdr .reset{border:1px solid var(--line);background:var(--paper);color:var(--ink-2);padding:8px 12px;border-radius:999px;font-weight:600;font-size:13px}
+
+  main{max-width:var(--maxw);margin:0 auto;padding:24px 20px 80px}
+  h1,h2,h3{letter-spacing:-.02em;margin:0}
+  .muted{color:var(--ink-3)}
+  .crumbs{font-size:13px;color:var(--ink-3);margin-bottom:16px}
+  .crumbs b{color:var(--ink-2);font-weight:600}
+
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:var(--radius-sm);font-weight:700;font-size:15px;padding:13px 18px;border:1px solid transparent;text-decoration:none}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.primary:hover{background:var(--accent-ink)}
+  .btn.ghost{background:var(--paper);color:var(--ink);border-color:var(--line)}
+  .btn.ghost:hover{background:var(--surface)}
+  .btn.block{width:100%}
+  .btn.lg{font-size:16px;padding:15px 20px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .linkbtn{background:none;border:none;color:var(--accent-ink);font-weight:600;font-size:14px;padding:0;text-decoration:underline;text-underline-offset:2px}
+
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .pad{padding:20px}
+
+  /* ---- S1 results ---- */
+  .grid{display:grid;gap:16px}
+  .results{grid-template-columns:repeat(3,1fr)}
+  .product{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;text-align:left}
+  .product .thumb{aspect-ratio:4/3;background:var(--surface-2);display:flex;align-items:center;justify-content:center}
+  .product .thumb svg{width:58%;height:58%}
+  .product .meta{padding:14px 15px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .product .nm{font-weight:600;font-size:15px;line-height:1.3}
+  .product .pr{font-weight:800;font-size:18px}
+  .product .pr s{color:var(--ink-3);font-weight:500;font-size:13px;margin-left:6px}
+  .rating{font-size:13px;color:var(--ink-3);display:flex;gap:5px;align-items:center}
+  .star{color:#e8a33d}
+  .product .foot{margin-top:auto;padding-top:6px}
+
+  /* ---- S2 product ---- */
+  .pdp{display:grid;grid-template-columns:1.15fr 1fr;gap:28px;align-items:start}
+  .gallery .main{aspect-ratio:1/1;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);display:flex;align-items:center;justify-content:center}
+  .gallery .main svg{width:70%;height:70%}
+  .gallery .row{display:flex;gap:10px;margin-top:12px}
+  .gallery .row .t{width:62px;height:62px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);display:flex;align-items:center;justify-content:center}
+  .gallery .row .t svg{width:70%;height:70%}
+  .specs{margin-top:22px}
+  .specs h3{font-size:15px;margin-bottom:10px}
+  .specs table{width:100%;border-collapse:collapse;font-size:14px}
+  .specs td{padding:9px 2px;border-bottom:1px solid var(--line)}
+  .specs td:first-child{color:var(--ink-3)}
+  .specs td:last-child{text-align:right;font-weight:500}
+
+  /* buy panel = the hero */
+  .buy{position:sticky;top:76px}
+  .buy .title{font-size:21px;font-weight:700;line-height:1.25}
+  .buy .sub{font-size:13px;color:var(--ink-3);margin-top:4px}
+  .price-row{display:flex;align-items:baseline;gap:10px;margin:16px 0 2px}
+  .price{font-size:34px;font-weight:800;letter-spacing:-.03em}
+  .price s{font-size:16px;font-weight:500;color:var(--ink-3)}
+  .save{font-size:13px;font-weight:600;color:var(--good)}
+  .field{margin-top:20px}
+  .field > .lab{font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:9px;display:flex;justify-content:space-between}
+  .swatches{display:flex;gap:10px}
+  .sw{width:46px;height:46px;border-radius:50%;border:2px solid var(--line);cursor:pointer;position:relative;padding:0;background-clip:padding-box}
+  .sw[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-wash)}
+  .ff{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ff .opt{border:1.5px solid var(--line);border-radius:var(--radius-sm);padding:12px 13px;text-align:left;background:var(--paper);display:flex;flex-direction:column;gap:3px}
+  .ff .opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-wash)}
+  .ff .opt .k{font-weight:700;font-size:14px}
+  .ff .opt .v{font-size:12.5px;color:var(--ink-2)}
+  .ff .opt .free{color:var(--good);font-weight:600}
+  .storeline{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);margin-top:10px}
+  .storeline select{font-family:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--paper)}
+
+  .notice{border-radius:var(--radius-sm);padding:12px 14px;font-size:13.5px;display:flex;gap:10px;align-items:flex-start;margin-top:12px}
+  .notice .ic{flex:0 0 auto;margin-top:1px}
+  .notice.warn{background:var(--warn-wash);border:1px solid var(--warn-line);color:#6e480c}
+  .notice.good{background:var(--good-wash);border:1px solid #bfe3cb;color:#17632f}
+  .notice .act{margin-top:8px}
+  .notice.warn .linkbtn{color:#8a5a0c}
+
+  .protect{margin-top:18px;border:1px solid var(--line);border-radius:var(--radius-sm);padding:13px 14px;display:flex;gap:12px;align-items:flex-start}
+  .protect input{margin-top:3px;width:17px;height:17px;accent-color:var(--accent)}
+  .protect .pt{font-weight:600;font-size:14px}
+  .protect .pd{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+  .protect .pp{margin-left:auto;font-weight:700;white-space:nowrap}
+  .protect .optional{font-size:11px;color:var(--ink-3);font-weight:600;border:1px solid var(--line);border-radius:999px;padding:2px 8px}
+
+  .running{display:flex;justify-content:space-between;align-items:baseline;margin:18px 0 10px;padding-top:16px;border-top:1px solid var(--line)}
+  .running .t{font-size:13px;color:var(--ink-3)}
+  .running .a{font-size:22px;font-weight:800}
+
+  .deal{font-size:12.5px;color:var(--ink-3);margin-top:12px;display:flex;align-items:center;gap:7px}
+
+  /* order summary (shared) */
+  .two{display:grid;grid-template-columns:1.4fr .9fr;gap:24px;align-items:start}
+  .summary{position:sticky;top:76px}
+  .summary h3{font-size:15px;margin-bottom:14px}
+  .sumrow{display:flex;justify-content:space-between;font-size:14px;padding:7px 0;color:var(--ink-2)}
+  .sumrow.total{border-top:1px solid var(--line);margin-top:8px;padding-top:12px;font-size:17px;font-weight:800;color:var(--ink)}
+  .sumrow .free{color:var(--good);font-weight:600}
+  .sumrow s{color:var(--ink-3)}
+
+  /* line item */
+  .lineitem{display:flex;gap:16px}
+  .lineitem .im{width:92px;height:92px;flex:0 0 auto;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);display:flex;align-items:center;justify-content:center}
+  .lineitem .im svg{width:72%;height:72%}
+  .lineitem .nm{font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+  .chip{font-size:12.5px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 11px;color:var(--ink-2);font-weight:500}
+  .chip.good{background:var(--good-wash);border-color:#bfe3cb;color:#17632f}
+  .chip.warn{background:var(--warn-wash);border-color:var(--warn-line);color:#6e480c}
+  .qty{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:10px}
+  .qty button{width:34px;height:32px;background:var(--paper);border:none;font-size:17px;color:var(--ink)}
+  .qty span{min-width:34px;text-align:center;font-weight:600}
+
+  /* forms */
+  .form{display:grid;gap:14px}
+  .form .grp{display:grid;gap:6px}
+  .form label{font-size:13px;font-weight:600;color:var(--ink-2)}
+  .form input{font-family:inherit;font-size:15px;padding:11px 12px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--paper)}
+  .form input[aria-invalid="true"]{border-color:#c0392b;background:#fdecea}
+  .form .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .err{color:#c0392b;font-size:12.5px;font-weight:600;display:none}
+  .err.show{display:block}
+
+  .sectitle{font-size:13px;font-weight:700;color:var(--ink-2);margin:4px 0 2px}
+  .rev-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .rev-row:last-child{border-bottom:none}
+  .rev-row .k{color:var(--ink-3);font-size:14px}
+  .rev-row .v{font-weight:600;text-align:right}
+  .rev-row .v small{display:block;font-weight:500;color:var(--ink-3);font-size:12.5px}
+
+  /* recovery */
+  .reco .opt{display:flex;gap:14px;align-items:flex-start;border:1.5px solid var(--line);border-radius:var(--radius);padding:16px;margin-top:12px;background:var(--paper)}
+  .reco .opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-wash)}
+  .reco .opt .rd{width:20px;height:20px;border-radius:50%;border:2px solid var(--ink-3);flex:0 0 auto;margin-top:2px;display:flex;align-items:center;justify-content:center}
+  .reco .opt[aria-pressed="true"] .rd{border-color:var(--accent)}
+  .reco .opt[aria-pressed="true"] .rd::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--accent)}
+  .reco .opt .ttl{font-weight:700;display:block}
+  .reco .opt .ds{font-size:13px;color:var(--ink-2);margin-top:3px;display:block}
+  .reco .opt .tag{font-size:12px;font-weight:700;margin-top:7px;display:inline-block}
+  .reco .opt .tag.good{color:var(--good)}
+  .reco .subpick{margin:10px 0 2px 36px;display:flex;gap:9px;flex-wrap:wrap}
+  .reco .subpick button{font-family:inherit;font-size:13px;font-weight:600;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 13px}
+  .reco .subpick button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-wash);color:var(--accent-ink)}
+  .preserve{font-size:12.5px;color:var(--ink-3);margin-top:14px;display:flex;gap:8px;align-items:center}
+
+  /* confirmation */
+  .confirm-top{display:flex;flex-direction:column;align-items:center;text-align:center;padding:10px 0 6px}
+  .checkmark{width:62px;height:62px;border-radius:50%;background:var(--good-wash);color:var(--good);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+  .ordernum{font-weight:700;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 14px;font-size:14px;margin-top:8px}
+
+  .actions{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap}
+  .backlink{margin-top:18px}
+
+  @media (max-width:860px){
+    .results{grid-template-columns:1fr 1fr}
+    .pdp{grid-template-columns:1fr}
+    .buy{position:static}
+    .two{grid-template-columns:1fr}
+    .summary{position:static}
+  }
+  @media (max-width:560px){
+    .results{grid-template-columns:1fr}
+    .ff{grid-template-columns:1fr}
+    .hdr .brand small{display:none}
+  }
+</style>
+</head>
+<body>
+<header class="app">
+  <div class="hdr">
+    <div class="brand"><span class="dot"></span>Northline <small>electronics</small></div>
+    <span class="state-pill" id="statePill">S1 · Results</span>
+    <div class="spacer"></div>
+    <button class="cartbtn" onclick="go('S4')" id="cartBtn" aria-label="View cart">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      Cart <span class="count" id="cartCount">0</span>
+    </button>
+    <button class="reset" onclick="resetAll()" title="Reset the prototype to the start">↺ Reset</button>
+  </div>
+</header>
+<main id="app"></main>
+
+<script>
+/* ---------------- data ---------------- */
+const COLORS = [
+  {id:'Black', hex:'#1a1a1a'},
+  {id:'Midnight Blue', hex:'#2a3344'},
+  {id:'Platinum Silver', hex:'#d4d0c6'},
+  {id:'Smoky Pink', hex:'#c9b6b0'},
+];
+const STORES = ['Camelback (Phoenix)','Tempe Marketplace','Ahwatukee'];
+// same-day pickup availability: Black is NOT in stock today at Camelback, but is at the other two.
+function pickupTodayAt(color, store){
+  if(color==='Black' && store==='Camelback (Phoenix)') return false;
+  return true;
+}
+const SHIP_ETA = 'Sat, Nov 21';
+const PICKUP_TODAY = 'today · ready in 1 hour';
+const PICKUP_DELAYED = 'Tue, Nov 24';
+const UNIT = 169.99, WAS = 398.00, SAVE = 228.01, PROTECT = 49.99, TAX = 0.091;
+
+const initial = () => ({
+  screen:'S1', qty:1, color:'Black', fulfillment:'pickup', store:'Camelback (Phoenix)',
+  protection:false, inCart:false, returnTo:'S2',
+  contact:{name:'Jordan Rivera', email:'jordan.rivera@example.com'},
+  ship:{addr:'640 S Mill Ave, Tempe, AZ 85281'},
+  pay:{card:'4242 4242 4242 4242', exp:'09/29', cvc:'123'},
+  placed:false, orderNo:null,
+});
+let s = initial();
+
+/* ---------------- helpers ---------------- */
+const $ = sel => document.querySelector(sel);
+const money = n => '$'+n.toFixed(2);
+function conflict(){ return s.fulfillment==='pickup' && !pickupTodayAt(s.color, s.store); }
+function totals(){
+  const items = UNIT*s.qty;
+  const prot = s.protection?PROTECT:0;
+  const pre = items+prot;
+  const tax = Math.round(pre*TAX*100)/100;
+  return {items, prot, pre, tax, total:pre+tax};
+}
+function ffText(kind){
+  if(kind==='ship') return 'Arrives '+SHIP_ETA;
+  return pickupTodayAt(s.color,s.store) ? 'Pickup '+PICKUP_TODAY : 'Earliest '+PICKUP_DELAYED;
+}
+function currentFulfillmentSummary(){
+  if(s.fulfillment==='ship') return {label:'Ship to home', detail:'Arrives '+SHIP_ETA, warn:false};
+  const ok = pickupTodayAt(s.color,s.store);
+  return {label:'Store pickup · '+s.store, detail: ok?('Ready '+PICKUP_TODAY):('Not available today — earliest '+PICKUP_DELAYED), warn:!ok};
+}
+const STATE_NAMES = {S1:'Results',S2:'Product detail',S3:'Added to cart',S4:'Cart',S5:'Checkout',S6:'Resolve pickup',S7:'Order review',S8:'Order placed'};
+
+/* headphone illustration */
+function hp(color){ const c = (COLORS.find(x=>x.id===color)||COLORS[0]).hex;
+  return `<svg viewBox="0 0 100 100" fill="none" aria-hidden="true"><path d="M22 58V50a28 28 0 0 1 56 0v8" stroke="${c}" stroke-width="6" stroke-linecap="round"/><rect x="14" y="52" width="16" height="26" rx="7" fill="${c}"/><rect x="70" y="52" width="16" height="26" rx="7" fill="${c}"/></svg>`; }
+
+/* ---------------- navigation ---------------- */
+function go(screen){ s.screen=screen; render(); window.scrollTo({top:0,behavior:'instant'}); }
+function resetAll(){ s = initial(); render(); window.scrollTo({top:0}); }
+function openRecovery(){ s.returnTo = (s.screen==='S7')?'S7':(s.screen==='S4'?'S4':'S2'); s.recoChoice=null; s.recoSub=null; go('S6'); }
+
+/* ---------------- actions ---------------- */
+function setColor(c){ s.color=c; render(); }
+function setFulfillment(f){ s.fulfillment=f; render(); }
+function setStore(v){ s.store=v; render(); }
+function toggleProtect(v){ s.protection=v; render(); }
+function changeQty(d){ s.qty=Math.max(1,Math.min(5,s.qty+d)); render(); }
+function addToCart(){ s.inCart=true; go('S3'); }
+
+function chooseReco(kind){
+  s.recoChoice=kind;
+  const alt=STORES.filter(x=>x!=='Camelback (Phoenix)');
+  const altC=COLORS.filter(c=>c.id!=='Black').map(c=>c.id);
+  if(kind==='store' && (!s.recoSub||!alt.includes(s.recoSub))) s.recoSub=alt[0];
+  else if(kind==='color' && (!s.recoSub||!altC.includes(s.recoSub))) s.recoSub=altC[0];
+  else if(kind==='ship') s.recoSub=null;
+  render();
+}
+function setRecoSub(v){ s.recoSub=v; render(); }
+function applyRecovery(){
+  if(s.recoChoice==='ship'){ s.fulfillment='ship'; }
+  else if(s.recoChoice==='store'){ s.fulfillment='pickup'; s.store=s.recoSub||'Tempe Marketplace'; }
+  else if(s.recoChoice==='color'){ s.fulfillment='pickup'; s.store='Camelback (Phoenix)'; s.color=s.recoSub||'Midnight Blue'; }
+  go(s.returnTo||'S4');
+}
+
+function validateCheckout(){
+  let ok=true;
+  const need=[['name',s.contact.name],['email',s.contact.email],['addr',s.ship.addr],['card',s.pay.card]];
+  need.forEach(([id,val])=>{ const el=document.querySelector('#err_'+id); const inp=document.querySelector('#f_'+id);
+    if(!val || !String(val).trim()){ ok=false; if(el)el.classList.add('show'); if(inp)inp.setAttribute('aria-invalid','true'); }
+    else { if(el)el.classList.remove('show'); if(inp)inp.removeAttribute('aria-invalid'); } });
+  if(ok) go('S7');
+}
+function bindField(id, path){ const inp=document.querySelector('#f_'+id); if(!inp)return;
+  inp.addEventListener('input', e=>{ const parts=path.split('.'); let o=s; for(let i=0;i<parts.length-1;i++)o=o[parts[i]]; o[parts[parts.length-1]]=e.target.value; }); }
+
+function placeOrder(){ if(conflict()){ openRecovery(); return; } s.placed=true; s.orderNo = 'NL-'+Math.floor(100000+Math.random()*899999); go('S8'); }
+
+/* ---------------- shared fragments ---------------- */
+function summaryCard(showEdit){
+  const t=totals(); const f=currentFulfillmentSummary();
+  return `<div class="card pad summary">
+    <h3>Order summary</h3>
+    <div class="sumrow"><span>Headphones${s.qty>1?' × '+s.qty:''} <s class="num">${money(WAS*s.qty)}</s></span><span class="num">${money(t.items)}</span></div>
+    <div class="sumrow"><span class="free">You save</span><span class="free num">−${money(SAVE*s.qty)}</span></div>
+    ${s.protection?`<div class="sumrow"><span>2-year protection</span><span class="num">${money(t.prot)}</span></div>`:''}
+    <div class="sumrow"><span>${s.fulfillment==='ship'?'Shipping':'Store pickup'}</span><span class="free">FREE</span></div>
+    <div class="sumrow"><span>Estimated tax</span><span class="num">${money(t.tax)}</span></div>
+    <div class="sumrow total"><span>Total</span><span class="num">${money(t.total)}</span></div>
+    <div class="sumrow" style="padding-top:12px"><span>${f.label}</span></div>
+    <div style="font-size:12.5px;color:${f.warn?'#6e480c':'var(--ink-3)'};margin-top:-4px">${f.detail}</div>
+    ${showEdit?`<button class="btn ghost block" style="margin-top:14px" onclick="go('S2')">Edit selections</button>`:''}
+  </div>`;
+}
+function itemChips(){
+  const f=currentFulfillmentSummary();
+  return `<div class="chips">
+    <span class="chip">Color: ${s.color}</span>
+    <span class="chip ${f.warn?'warn':'good'}">${s.fulfillment==='ship'?'Ship · arrives '+SHIP_ETA:(f.warn?'Pickup not available today':'Pickup '+PICKUP_TODAY)}</span>
+    ${s.fulfillment==='pickup'?`<span class="chip">${s.store}</span>`:''}
+    ${s.protection?`<span class="chip">+ 2-yr protection</span>`:''}
+  </div>`;
+}
+
+/* ---------------- screens ---------------- */
+function S1(){
+  const items=[
+    {nm:'Sony WH-1000XM5 Wireless Noise-Cancelling Headphones', pr:UNIT, was:WAS, rate:'4.6', n:'6,729', real:true},
+    {nm:'Bose QuietComfort Ultra Headphones', pr:329.00, was:429.00, rate:'4.5', n:'3,110'},
+    {nm:'Apple AirPods Max (USB-C)', pr:479.00, was:549.00, rate:'4.7', n:'8,402'},
+    {nm:'Sennheiser Momentum 4 Wireless', pr:299.95, was:379.95, rate:'4.4', n:'1,980'},
+    {nm:'Beats Studio Pro Wireless', pr:179.99, was:349.99, rate:'4.3', n:'5,240'},
+    {nm:'Soundcore Space One Pro', pr:149.99, was:199.99, rate:'4.2', n:'2,015'},
+  ];
+  return `<div class="crumbs">Headphones <b>›</b> Over-ear <b>›</b> Noise-cancelling</div>
+  <h1 style="font-size:24px;margin-bottom:4px">Over-ear noise-cancelling headphones</h1>
+  <p class="muted" style="margin:0 0 20px">${items.length} results · prices in USD</p>
+  <div class="grid results">
+    ${items.map((it,i)=>`<div class="product">
+      <div class="thumb">${hp(i===0?'Black':'Midnight Blue')}</div>
+      <div class="meta">
+        <div class="nm">${it.nm}</div>
+        <div class="rating"><span class="star">★</span> ${it.rate} <span>(${it.n})</span></div>
+        <div class="pr num">${money(it.pr)} <s>${money(it.was)}</s></div>
+        <div class="foot">${it.real
+          ? `<button class="btn primary block" onclick="go('S2')">View details</button>`
+          : `<button class="btn ghost block" disabled title="Demo focuses on one product">View details</button>`}</div>
+      </div>
+    </div>`).join('')}
+  </div>
+  <p class="muted" style="font-size:12.5px;margin-top:18px">This prototype implements the full task for the Sony WH-1000XM5. Other cards are shown for realistic context only.</p>`;
+}
+
+function S2(){
+  const t=totals();
+  const warn = conflict();
+  return `<div class="crumbs"><button class="linkbtn" onclick="go('S1')">Results</button> <b>›</b> Sony WH-1000XM5</div>
+  <div class="pdp">
+    <div class="gallery">
+      <div class="main">${hp(s.color)}</div>
+      <div class="row">${COLORS.map(c=>`<div class="t" title="${c.id}">${hp(c.id)}</div>`).join('')}</div>
+      <div class="specs">
+        <h3>Key specs</h3>
+        <table>
+          <tr><td>Noise cancelling</td><td>Active (adaptive)</td></tr>
+          <tr><td>Battery</td><td>Up to 30 hrs</td></tr>
+          <tr><td>Weight</td><td>250 g</td></tr>
+          <tr><td>Connection</td><td>Bluetooth 5.2 · wired</td></tr>
+          <tr><td>Mic</td><td>8-mic call clarity</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="buy">
+      <div class="card pad">
+        <div class="title">Sony WH-1000XM5 Noise-Cancelling Headphones</div>
+        <div class="sub">Model WH1000XM5 · <span class="star">★</span> 4.6 (6,729)</div>
+
+        <div class="price-row">
+          <span class="price num">${money(UNIT)}</span>
+          <s class="num">${money(WAS)}</s>
+          <span class="save num">Save ${money(SAVE)}</span>
+        </div>
+
+        <div class="field">
+          <div class="lab">Color <span class="muted" style="font-weight:500">${s.color}</span></div>
+          <div class="swatches">
+            ${COLORS.map(c=>`<button class="sw" style="background:${c.hex}" aria-pressed="${s.color===c.id}" aria-label="${c.id}" onclick="setColor('${c.id}')"></button>`).join('')}
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="lab">How you’ll get it</div>
+          <div class="ff">
+            <button class="opt" aria-pressed="${s.fulfillment==='pickup'}" onclick="setFulfillment('pickup')">
+              <span class="k">Store pickup</span>
+              <span class="v ${pickupTodayAt(s.color,s.store)?'':''}">${pickupTodayAt(s.color,s.store)?'Ready '+PICKUP_TODAY:'Earliest '+PICKUP_DELAYED}</span>
+              <span class="v free">Free</span>
+            </button>
+            <button class="opt" aria-pressed="${s.fulfillment==='ship'}" onclick="setFulfillment('ship')">
+              <span class="k">Ship to home</span>
+              <span class="v">Arrives ${SHIP_ETA}</span>
+              <span class="v free">Free</span>
+            </button>
+          </div>
+          ${s.fulfillment==='pickup'?`<div class="storeline">
+            <span>Pickup store:</span>
+            <select onchange="setStore(this.value)" aria-label="Pickup store">
+              ${STORES.map(st=>`<option ${st===s.store?'selected':''}>${st}</option>`).join('')}
+            </select>
+          </div>`:''}
+
+          ${warn?`<div class="notice warn">
+            <span class="ic">⚠️</span>
+            <div><strong>${s.color} isn’t available for same-day pickup at ${s.store}.</strong>
+            The earliest pickup is ${PICKUP_DELAYED} — but free shipping arrives sooner (${SHIP_ETA}).
+            <div class="act"><button class="linkbtn" onclick="openRecovery()">Resolve pickup →</button></div></div>
+          </div>`:``}
+        </div>
+
+        <div class="protect">
+          <input type="checkbox" id="prot" ${s.protection?'checked':''} onchange="toggleProtect(this.checked)">
+          <div>
+            <label for="prot" class="pt">2-year accidental protection</label>
+            <div class="pd">Covers drops and spills. Add now or later — your choice.</div>
+          </div>
+          <span class="optional">Optional</span>
+          <span class="pp num">${money(PROTECT)}</span>
+        </div>
+
+        <div class="running">
+          <span class="t">Your total so far</span>
+          <span class="a num">${money(t.total)}</span>
+        </div>
+        <button class="btn primary block lg" onclick="addToCart()">Add to cart</button>
+        <div class="deal">◷ Deal price good through Nov 28 · free 30-day returns</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function S3(){
+  const t=totals(); const f=currentFulfillmentSummary();
+  return `<div style="max-width:620px;margin:0 auto">
+    <div class="card pad">
+      <div class="notice good" style="margin-top:0"><span class="ic">✓</span><div><strong>Added to your cart.</strong> Here’s exactly what you’re getting.</div></div>
+      <div class="lineitem" style="margin-top:18px">
+        <div class="im">${hp(s.color)}</div>
+        <div>
+          <div class="nm">Sony WH-1000XM5</div>
+          ${itemChips()}
+          <div style="margin-top:10px" class="num"><strong>${money(UNIT)}</strong> <s class="muted">${money(WAS)}</s></div>
+        </div>
+      </div>
+      ${!s.protection?`<div class="protect" style="margin-top:18px">
+        <input type="checkbox" id="prot2" onchange="toggleProtect(this.checked)">
+        <div><label for="prot2" class="pt">Add 2-year protection</label>
+        <div class="pd">Optional — you can decide now or skip it.</div></div>
+        <span class="optional">Optional</span><span class="pp num">${money(PROTECT)}</span>
+      </div>`:``}
+      <div class="sumrow total" style="margin-top:18px"><span>Total</span><span class="num">${money(t.total)}</span></div>
+      <div class="actions">
+        <button class="btn primary lg" onclick="go('S4')">View cart</button>
+        <button class="btn ghost lg" onclick="go('S1')">Keep shopping</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function S4(){
+  const warn=conflict();
+  return `<h1 style="font-size:22px;margin-bottom:16px">Your cart</h1>
+  <div class="two">
+    <div class="card pad">
+      ${warn?`<div class="notice warn" style="margin-top:0"><span class="ic">⚠️</span><div><strong>Pickup needs attention.</strong> ${s.color} can’t be picked up today at ${s.store}. <div class="act"><button class="linkbtn" onclick="openRecovery()">Resolve pickup →</button></div></div></div>`:''}
+      <div class="lineitem" style="${warn?'margin-top:18px':''}">
+        <div class="im">${hp(s.color)}</div>
+        <div style="flex:1">
+          <div class="nm">Sony WH-1000XM5 Noise-Cancelling Headphones</div>
+          ${itemChips()}
+          <div class="qty"><button onclick="changeQty(-1)" aria-label="Decrease">−</button><span class="num">${s.qty}</span><button onclick="changeQty(1)" aria-label="Increase">+</button></div>
+          <div style="margin-top:10px"><button class="linkbtn" onclick="go('S2')">Edit color / pickup</button></div>
+        </div>
+        <div style="text-align:right"><strong class="num">${money(UNIT*s.qty)}</strong><div class="muted num" style="font-size:12.5px"><s>${money(WAS*s.qty)}</s></div></div>
+      </div>
+    </div>
+    <div>
+      ${summaryCard(false)}
+      <button class="btn primary block lg" style="margin-top:14px" onclick="go('S5')">Proceed to checkout</button>
+      <button class="btn ghost block" style="margin-top:10px" onclick="go('S1')">Keep shopping</button>
+    </div>
+  </div>`;
+}
+
+function S5(){
+  return `<h1 style="font-size:22px;margin-bottom:16px">Checkout</h1>
+  <p class="muted" style="margin:-8px 0 18px;font-size:13px">Simulated — use the fictional details below. No real order is placed.</p>
+  <div class="two">
+    <div class="card pad">
+      <div class="form">
+        <div class="sectitle">Contact</div>
+        <div class="grp"><label for="f_name">Full name</label><input id="f_name" value="${s.contact.name}"><span class="err" id="err_name">Enter a name to continue.</span></div>
+        <div class="grp"><label for="f_email">Email</label><input id="f_email" value="${s.contact.email}"><span class="err" id="err_email">Enter an email to continue.</span></div>
+        <div class="sectitle" style="margin-top:8px">${s.fulfillment==='ship'?'Shipping address':'Pickup person & contact address'}</div>
+        <div class="grp"><label for="f_addr">Address</label><input id="f_addr" value="${s.ship.addr}"><span class="err" id="err_addr">Enter an address to continue.</span></div>
+        <div class="sectitle" style="margin-top:8px">Payment (fictional)</div>
+        <div class="grp"><label for="f_card">Card number</label><input id="f_card" value="${s.pay.card}"><span class="err" id="err_card">Enter a card number to continue.</span></div>
+        <div class="two-col">
+          <div class="grp"><label for="f_exp">Expiry</label><input id="f_exp" value="${s.pay.exp}"></div>
+          <div class="grp"><label for="f_cvc">CVC</label><input id="f_cvc" value="${s.pay.cvc}"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      ${summaryCard(true)}
+      <button class="btn primary block lg" style="margin-top:14px" onclick="validateCheckout()">Review order</button>
+      <button class="btn ghost block" style="margin-top:10px" onclick="go('S4')">Back to cart</button>
+    </div>
+  </div>`;
+}
+
+function S6(){
+  const alt = STORES.filter(st=>st!=='Camelback (Phoenix)');
+  const altColors = COLORS.filter(c=>c.id!=='Black');
+  return `<div style="max-width:680px;margin:0 auto">
+    <button class="linkbtn backlink" onclick="go(s.returnTo||'S4')">← Back</button>
+    <h1 style="font-size:22px;margin:10px 0 6px">Let’s fix the pickup</h1>
+    <p class="muted" style="margin:0 0 6px">${s.color} isn’t in stock for same-day pickup at ${s.store} (earliest ${PICKUP_DELAYED}). Pick an option — everything else in your order stays put.</p>
+    <div class="reco">
+      <button class="opt" aria-pressed="${s.recoChoice==='ship'}" onclick="chooseReco('ship')">
+        <span class="rd"></span>
+        <span class="body"><span class="ttl">Switch to free shipping</span><span class="ds">Keep ${s.color}. Arrives ${SHIP_ETA}.</span><span class="tag good">Fastest — sooner than pickup</span></span>
+      </button>
+
+      <button class="opt" aria-pressed="${s.recoChoice==='store'}" onclick="chooseReco('store')">
+        <span class="rd"></span>
+        <span class="body"><span class="ttl">Pick up ${s.color} at another store today</span><span class="ds">Same color, ready today.</span></span>
+      </button>
+      ${s.recoChoice==='store'?`<div class="subpick">${alt.map(st=>`<button aria-pressed="${s.recoSub===st}" onclick="setRecoSub('${st}')">${st} · today</button>`).join('')}</div>`:''}
+
+      <button class="opt" aria-pressed="${s.recoChoice==='color'}" onclick="chooseReco('color')">
+        <span class="rd"></span>
+        <span class="body"><span class="ttl">Choose an in-stock color for pickup today</span><span class="ds">Keep pickup at Camelback (Phoenix), ready today.</span></span>
+      </button>
+      ${s.recoChoice==='color'?`<div class="subpick">${altColors.map(c=>`<button aria-pressed="${s.recoSub===c.id}" onclick="setRecoSub('${c.id}')">${c.id} · today</button>`).join('')}</div>`:''}
+    </div>
+    <div class="preserve">🔒 Preserved: your quantity (${s.qty})${s.protection?', 2-year protection':''}, prices, and everything already in your cart.</div>
+    <div class="actions">
+      <button class="btn primary lg" ${s.recoChoice?'':'disabled'} onclick="applyRecovery()">Confirm change</button>
+      <button class="btn ghost lg" onclick="go(s.returnTo||'S4')">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function S7(){
+  const t=totals(); const f=currentFulfillmentSummary(); const warn=conflict();
+  return `<h1 style="font-size:22px;margin-bottom:16px">Review your order</h1>
+  <div class="two">
+    <div class="card pad">
+      ${warn?`<div class="notice warn" style="margin-top:0"><span class="ic">⚠️</span><div><strong>This order can’t be picked up today as set.</strong> ${s.color} at ${s.store} isn’t available until ${PICKUP_DELAYED}. <div class="act"><button class="linkbtn" onclick="openRecovery()">Resolve pickup →</button></div></div></div>`:''}
+      <div class="lineitem" style="${warn?'margin-top:18px':''}">
+        <div class="im">${hp(s.color)}</div>
+        <div style="flex:1"><div class="nm">Sony WH-1000XM5</div>${itemChips()}</div>
+        <div><strong class="num">${money(UNIT*s.qty)}</strong></div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="rev-row"><span class="k">Getting it</span><span class="v">${f.label}<small>${f.detail}</small></span></div>
+        <div class="rev-row"><span class="k">Protection</span><span class="v">${s.protection?'2-year · '+money(PROTECT):'None'}</span></div>
+        <div class="rev-row"><span class="k">Contact</span><span class="v">${s.contact.name}<small>${s.contact.email}</small></span></div>
+        <div class="rev-row"><span class="k">${s.fulfillment==='ship'?'Ship to':'Contact address'}</span><span class="v" style="font-weight:500">${s.ship.addr}</span></div>
+        <div class="rev-row"><span class="k">Payment</span><span class="v">Card ending ${s.pay.card.slice(-4)}</span></div>
+      </div>
+      <div style="display:flex;gap:16px;margin-top:14px">
+        <button class="linkbtn" onclick="go('S2')">Edit item</button>
+        <button class="linkbtn" onclick="go('S4')">Edit cart</button>
+        <button class="linkbtn" onclick="go('S5')">Edit info</button>
+      </div>
+    </div>
+    <div>
+      ${summaryCard(false)}
+      <button class="btn primary block lg" style="margin-top:14px" onclick="placeOrder()">${warn?'Resolve pickup to place order':'Place order · '+money(t.total)}</button>
+      <button class="btn ghost block" style="margin-top:10px" onclick="go('S5')">Back</button>
+    </div>
+  </div>`;
+}
+
+function S8(){
+  if(!s.orderNo) s.orderNo = 'NL-'+Math.floor(100000+Math.random()*899999);
+  const t=totals(); const f=currentFulfillmentSummary();
+  return `<div style="max-width:620px;margin:0 auto">
+    <div class="card pad">
+      <div class="confirm-top">
+        <div class="checkmark"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <h1 style="font-size:22px">Order placed</h1>
+        <p class="muted" style="margin:6px 0 0">A confirmation was sent to ${s.contact.email}.</p>
+        <div class="ordernum num">Order ${s.orderNo}</div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="rev-row"><span class="k">Item</span><span class="v">Sony WH-1000XM5 · ${s.color}${s.qty>1?' × '+s.qty:''}</span></div>
+        <div class="rev-row"><span class="k">${s.fulfillment==='ship'?'Arriving':'Pickup'}</span><span class="v">${s.fulfillment==='ship'?SHIP_ETA:(s.store)}<small>${s.fulfillment==='ship'?'Free shipping':f.detail}</small></span></div>
+        ${s.protection?`<div class="rev-row"><span class="k">Protection</span><span class="v">2-year added</span></div>`:''}
+        <div class="rev-row"><span class="k">Total charged</span><span class="v num">${money(t.total)}</span></div>
+      </div>
+      <div class="notice good" style="margin-top:18px"><span class="ic">${s.fulfillment==='ship'?'📦':'🏬'}</span><div>${s.fulfillment==='ship'?'We’ll email tracking when it ships. ':'We’ll email you when it’s ready for pickup. '}You can change or cancel within 30 minutes.</div></div>
+      <div class="actions"><button class="btn primary lg" onclick="resetAll()">Start over / reset</button></div>
+    </div>
+  </div>`;
+}
+
+/* ---------------- render ---------------- */
+const SCREENS={S1,S2,S3,S4,S5,S6,S7,S8};
+function render(){
+  $('#app').innerHTML = SCREENS[s.screen]();
+  $('#statePill').textContent = s.screen+' · '+STATE_NAMES[s.screen];
+  $('#cartCount').textContent = s.inCart ? s.qty : 0;
+  $('#cartBtn').style.visibility = s.inCart ? 'visible':'hidden';
+  document.title = s.screen+' · '+STATE_NAMES[s.screen]+' — Northline prototype';
+  if(s.screen==='S5'){ bindField('name','contact.name'); bindField('email','contact.email'); bindField('addr','ship.addr'); bindField('card','pay.card'); bindField('exp','pay.exp'); bindField('cvc','pay.cvc'); }
+}
+
+/* deep-link for screenshots/testing: ?s=S4&color=Black&ff=pickup&protect=1&cart=1 */
+(function init(){
+  const p=new URLSearchParams(location.search);
+  if(p.get('color') && COLORS.some(c=>c.id===p.get('color'))) s.color=p.get('color');
+  if(p.get('ff')) s.fulfillment = p.get('ff')==='ship'?'ship':'pickup';
+  if(p.get('store') && STORES.includes(p.get('store'))) s.store=p.get('store');
+  if(p.get('protect')==='1') s.protection=true;
+  if(p.get('cart')==='1') s.inCart=true;
+  if(p.get('reco')){ s.recoChoice=p.get('reco'); }
+  const st=p.get('s'); if(st && SCREENS[st]){ if(['S3','S4','S5','S7'].includes(st)) s.inCart=true; s.screen=st; }
+  render();
+})();
+</script>
+</body>
+</html>
